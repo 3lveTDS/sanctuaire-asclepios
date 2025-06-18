@@ -2,117 +2,93 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Sanctuaire d'Asclépios – Spirale</title>
+    <title>Sanctuaire d'Asclépios</title>
     <style>
         body {
-            background-color: #111111;
-            color: #eee;
             display: flex;
             justify-content: center;
             align-items: flex-start;
             font-family: sans-serif;
-            margin: 0;
-            min-height: 100vh;
+            background-color: #111;
+            color: #eee;
         }
         #sidebar {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            min-width: 100px;
-            margin-top: 40px;
+            margin-right: 40px;
+            border-right: 1px solid #444;
+            padding-right: 10px;
+            height: 800px;
         }
         #progress {
-            background: #222;
-            color: #eee;
-            padding: 8px 0;
-            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #222;
+            border: 1px solid #777;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #ccc;
             text-align: center;
-            border-radius: 6px 6px 0 0;
-            margin-bottom: 0;
-            font-size: 1em;
         }
         #reset-button {
-            width: 100%;
-            background: #222;
-            color: #eee;
-            padding: 8px 0;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 0.9em;
+            background-color: #222;
             border: 1px solid #777;
-            border-radius: 0 0 6px 6px;
-            font-size: 1em;
+            color: #eee;
+            border-radius: 6px;
             cursor: pointer;
-            margin-bottom: 16px;
         }
         #list {
             display: flex;
             flex-direction: column;
-            align-items: stretch;
             gap: 4px;
             overflow-y: scroll;
             flex-grow: 1;
-            height: 700px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            scrollbar-width: none;          /* Firefox */
+            -ms-overflow-style: none;       /* IE/Edge legacy */
         }
-        #list::-webkit-scrollbar { display: none; }
+        #list::-webkit-scrollbar {
+                display: none;                  /* Chrome/Safari/Opera */
+        }
+
         .btn {
-            background: #222;
+            background-color: #222;
             color: #eee;
             border: 1px solid #777;
             border-radius: 6px;
-            margin: 0 0 2px 0;
-            padding: 4px;
-            font-size: 0.95em;
+            font-size: 0.8em;
+            padding: 8px;
             cursor: pointer;
             width: 100%;
-            box-sizing: border-box;
-            transition: background 0.2s, color 0.2s;
-        }
-        .btn:hover {
-            background: #444;
-            color: #fff;
         }
         #canvas {
             position: relative;
             width: 800px;
             height: 800px;
             background-color: #111111;
-            margin-top: 40px;
-            margin-left: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .dot {
             position: absolute;
             width: 20px;
             height: 20px;
-            background-color: #555;
-            transition: background-color 0.3s;
-            box-sizing: border-box;
-            border: none;
             border-radius: 0;
+            background-color: #444;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            margin: 0;
+            z-index: 1;
         }
-        .dot[data-level="1"] { background-color: #d32f2f; }   /* rouge */
-        .dot[data-level="2"] { background-color: #1976d2; }   /* bleu */
-        .dot[data-level="3"] { background-color: #388e3c; }   /* vert */
         .dot.pulse {
-            animation: pulse 0.5s;
+            animation: pulse 0.6s ease-out;
         }
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 #fff5, 0 0 0 0 #fff0; }
-            70% { box-shadow: 0 0 10px 10px #fff2, 0 0 20px 20px #fff1; }
-            100% { box-shadow: 0 0 0 0 #fff0, 0 0 0 0 #fff0; }
-        }
-        .dot:hover::after {
-            content: attr(data-index);
-            position: absolute;
-            left: 50%; top: -22px;
-            transform: translateX(-50%);
-            color: #fff;
-            background: #111;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            pointer-events: none;
-            z-index: 10;
-            box-shadow: 0 2px 8px #0008;
+            0% { box-shadow: 0 0 0px 4px #fff0; }
+            50% { box-shadow: 0 0 16px 8px #fff8; }
+            100% { box-shadow: 0 0 0px 4px #fff0; }
         }
     </style>
 </head>
@@ -124,104 +100,72 @@
     </div>
     <div id="canvas"></div>
     <script>
+        // === PARAMÈTRES ===
         const N = 367;
-        const cellSize = 20;
-        const gridSize = 21; // (doit être impair, assez grand pour contenir la spirale de 367 cases)
-        const offset = Math.floor(gridSize / 2);
-        const levels = ['0', '1', '2', '3']; // 0: gris, 1: rouge, 2: bleu, 3: vert
-        const levelColors = {
-            '0': '#555',      // gris de base
-            '1': '#d32f2f',   // rouge
-            '2': '#1976d2',   // bleu
-            '3': '#388e3c'    // vert
-        };
-
-        // Génère les positions spiralées pour chaque index
-        function generateSpiralPositions(N, cellSize, gridSize) {
-            let x = offset, y = offset;
-            let dx = [1, 0, -1, 0];
-            let dy = [0, -1, 0, 1];
-            let dir = 0, segment_length = 1, segment_passed = 0, turns = 0;
-            let positions = [{x, y}];
-            for (let i = 1; i < N; i++) {
-                x += dx[dir];
-                y += dy[dir];
-                positions.push({x, y});
-                segment_passed++;
-                if (segment_passed === segment_length) {
-                    segment_passed = 0;
-                    dir = (dir + 1) % 4;
-                    turns++;
-                    if (turns % 2 === 0) segment_length++;
-                }
-            }
-            // Centre et convertit en pixels
-            return positions.map(pos => ({
-                x: pos.x * cellSize,
-                y: pos.y * cellSize
-            }));
-        }
-
-        // Sauvegarde & état
+        // Ordre : gris > rouge > bleu > vert
+        const levels = ["#444", "#e74c3c", "#3498db", "#27ae60"];
         const state = JSON.parse(localStorage.getItem("asclepiosState") || "{}");
+
+        // Grille compacte (carré le plus proche de racine(N))
+        const gridSize = Math.ceil(Math.sqrt(N)); // 20x20 max pour 367
+        const cellSize = 20;  // px
+        const offsetX = (800 - gridSize * cellSize) / 2;
+        const offsetY = (800 - gridSize * cellSize) / 2;
 
         const canvas = document.getElementById("canvas");
         const list = document.getElementById("list");
         const progress = document.getElementById("progress");
+
         let dots = {};
 
-        // Crée la grille spiralée
-        const positions = generateSpiralPositions(N, cellSize, gridSize);
-
-        // Place les carrés (dots)
-        for (let i = 1; i <= N; i++) {
-            const pos = positions[i-1];
-            const dot = document.createElement("div");
-            dot.className = "dot";
-            dot.style.left = `${pos.x + (800 - gridSize*cellSize)/2}px`;
-            dot.style.top = `${pos.y + (800 - gridSize*cellSize)/2}px`;
-            dot.dataset.index = i;
-            dot.dataset.level = state[i] || '0';
-            dot.style.backgroundColor = levelColors[dot.dataset.level];
-            canvas.appendChild(dot);
-            dots[i] = dot;
-        }
-
-        // Fonction de progression
         function updateProgress() {
-            let count = Object.values(state).filter(v => parseInt(v) > 0).length;
+            let count = Object.values(state).filter(v => v > 0).length;
             progress.textContent = `Progression : ${count} / ${N}`;
         }
 
-        // Réinitialisation
         function resetAll() {
             if (!confirm("Réinitialiser tous les progrès ?")) return;
             for (let i = 1; i <= N; i++) {
-                state[i] = '0';
-                dots[i].dataset.level = '0';
-                dots[i].style.backgroundColor = levelColors['0'];
+                state[i] = 0;
+                dots[i].style.backgroundColor = levels[0];
             }
             localStorage.setItem("asclepiosState", JSON.stringify(state));
             updateProgress();
         }
 
-        // Génère les boutons verticalement
+        // Placer les carrés sur une grille compacte, sans espace
+        for (let i = 1; i <= N; i++) {
+            const row = Math.floor((i - 1) / gridSize);
+            const col = (i - 1) % gridSize;
+            const dot = document.createElement("div");
+            dot.className = "dot";
+            dot.style.left = `${offsetX + col * cellSize}px`;
+            dot.style.top = `${offsetY + row * cellSize}px`;
+            dot.dataset.index = i;
+            dot.title = `Item ${i}`;
+            canvas.appendChild(dot);
+            dots[i] = dot;
+        }
+
         for (let i = 1; i <= N; i++) {
             const btn = document.createElement("button");
             btn.className = "btn";
             btn.textContent = i;
             btn.onclick = () => {
-                let curLevel = parseInt(state[i] || '0');
-                curLevel = (curLevel + 1) % levels.length;
-                state[i] = '' + curLevel;
-                dots[i].dataset.level = '' + curLevel;
-                dots[i].style.backgroundColor = levelColors['' + curLevel];
+                state[i] = (state[i] || 0) + 1;
+                if (state[i] >= levels.length) state[i] = 0;
+                dots[i].style.backgroundColor = levels[state[i]];
                 dots[i].classList.add('pulse');
-                setTimeout(() => dots[i].classList.remove('pulse'), 400);
+                setTimeout(() => dots[i].classList.remove('pulse'), 600);
                 localStorage.setItem("asclepiosState", JSON.stringify(state));
                 updateProgress();
             };
             list.appendChild(btn);
+
+            // Appliquer l'état initial
+            if (typeof state[i] !== "undefined") {
+                dots[i].style.backgroundColor = levels[state[i]];
+            }
         }
 
         updateProgress();
