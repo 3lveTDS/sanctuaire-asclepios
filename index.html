@@ -20,37 +20,58 @@
             padding-right: 10px;
             height: 800px;
         }
+        #progress {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #222;
+            border: 1px solid #777;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #ccc;
+            text-align: center;
+        }
         #reset-button {
             margin-bottom: 10px;
-            padding: 6px;
+            padding: 10px;
             font-size: 0.9em;
             background-color: #222;
             border: 1px solid #777;
             color: #eee;
+            border-radius: 6px;
             cursor: pointer;
         }
         #list {
-            display: grid;
-            grid-template-columns: repeat(4, 60px);
-            grid-gap: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
             overflow-y: scroll;
             flex-grow: 1;
+        }
+        .btn {
+            background-color: #222;
+            color: #eee;
+            border: 1px solid #777;
+            border-radius: 6px;
+            font-size: 0.8em;
+            padding: 8px;
+            cursor: pointer;
+            width: 100%;
         }
         #canvas {
             position: relative;
             width: 800px;
             height: 800px;
-            background-color: #000; /* FOND NOIR */
+            background-color: #111111;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .dot {
             position: absolute;
-            width: 20px;         /* Augmenté pour faciliter la grille */
+            width: 20px;
             height: 20px;
-            border-radius: 0;    /* Bords droits */
-            background-color: #444; /* Gris par défaut */
+            border-radius: 0;
+            background-color: #444;
             transition: background-color 0.3s, box-shadow 0.3s;
             margin: 0;
             z-index: 1;
@@ -63,31 +84,20 @@
             50% { box-shadow: 0 0 16px 8px #fff8; }
             100% { box-shadow: 0 0 0px 4px #fff0; }
         }
-        #progress {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: #222;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 0.9em;
-            color: #ccc;
-        }
     </style>
 </head>
 <body>
     <div id="sidebar">
+        <div id="progress">Progression : 0 / 367</div>
         <button id="reset-button" onclick="resetAll()">Réinitialiser</button>
         <div id="list"></div>
     </div>
-    <div id="canvas">
-        <div id="progress">Progression : 0 / 367</div>
-    </div>
+    <div id="canvas"></div>
     <script>
         // === PARAMÈTRES ===
         const N = 367;
         // Ordre : gris > rouge > bleu > vert
-        const levels = ["#444", "#e74c3c", "#3498db", "#27ae60"]; 
+        const levels = ["#444", "#e74c3c", "#3498db", "#27ae60"];
         const state = JSON.parse(localStorage.getItem("asclepiosState") || "{}");
 
         // Grille compacte (carré le plus proche de racine(N))
