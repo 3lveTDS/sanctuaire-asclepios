@@ -138,35 +138,10 @@
                 dots[i].style.backgroundColor = levels[0];
             }
             localStorage.setItem("asclepiosState", JSON.stringify(state));
-            
-        const svg = document.getElementById("connections");
-
-        function drawConnections() {
-            svg.innerHTML = "";
-            let completed = [];
-            for (let i = 1; i <= N; i++) {
-                if (state[i] && state[i] > 0) {
-                    completed.push({ index: i, pos: positions[i - 1] });
-                }
-            }
-            completed.sort((a, b) => a.index - b.index);
-            for (let i = 0; i < completed.length - 1; i++) {
-                const p1 = completed[i].pos;
-                const p2 = completed[i + 1].pos;
-                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", p1.x + 7);  // offset to center of dot
-                line.setAttribute("y1", p1.y + 7);
-                line.setAttribute("x2", p2.x + 7);
-                line.setAttribute("y2", p2.y + 7);
-                line.setAttribute("stroke", "gold");
-                line.setAttribute("stroke-width", "1");
-                svg.appendChild(line);
-            }
+            updateProgress();
+            drawConnections();
         }
 
-        updateProgress(); drawConnections();
-        drawConnections();
-        }
 
         for (let i = 1; i <= N; i++) {
             const pos = positions[i - 1];
@@ -190,34 +165,8 @@
                 dots[i].classList.add('pulse');
                 setTimeout(() => dots[i].classList.remove('pulse'), 1000);
                 localStorage.setItem("asclepiosState", JSON.stringify(state));
-                
-        const svg = document.getElementById("connections");
-
-        function drawConnections() {
-            svg.innerHTML = "";
-            let completed = [];
-            for (let i = 1; i <= N; i++) {
-                if (state[i] && state[i] > 0) {
-                    completed.push({ index: i, pos: positions[i - 1] });
-                }
-            }
-            completed.sort((a, b) => a.index - b.index);
-            for (let i = 0; i < completed.length - 1; i++) {
-                const p1 = completed[i].pos;
-                const p2 = completed[i + 1].pos;
-                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", p1.x + 7);  // offset to center of dot
-                line.setAttribute("y1", p1.y + 7);
-                line.setAttribute("x2", p2.x + 7);
-                line.setAttribute("y2", p2.y + 7);
-                line.setAttribute("stroke", "gold");
-                line.setAttribute("stroke-width", "1");
-                svg.appendChild(line);
-            }
-        }
-
-        updateProgress(); drawConnections();
-        drawConnections();
+                updateProgress();
+                drawConnections();
             };
             list.appendChild(btn);
 
@@ -254,7 +203,7 @@
             }
         }
 
-        updateProgress(); drawConnections();
+        updateProgress();
         drawConnections();
     </script>
 </body>
