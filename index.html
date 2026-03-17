@@ -1,174 +1,266 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Sanctuaire d'Asclépios</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            font-family: sans-serif;
-            background-color: #111;
-            color: #eee;
-        }
-        #sidebar {
-            display: flex;
-            flex-direction: column;
-            margin-right: 40px;
-            border-right: 1px solid #444;
-            padding-right: 10px;
-            height: 800px;
-        }
-        #progress {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #222;
-            border: 1px solid #777;
-            border-radius: 6px;
-            font-size: 0.9em;
-            color: #ccc;
-            text-align: center;
-        }
-        #reset-button {
-            margin-bottom: 10px;
-            padding: 10px;
-            font-size: 0.9em;
-            background-color: #222;
-            border: 1px solid #777;
-            color: #eee;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        #list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            overflow-y: scroll;
-            flex-grow: 1;
-            scrollbar-width: none;          /* Firefox */
-            -ms-overflow-style: none;       /* IE/Edge legacy */
-        }
-        #list::-webkit-scrollbar {
-                display: none;                  /* Chrome/Safari/Opera */
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sanctuaire d'Asclépios</title>
+  <style>
+    :root {
+      --bg: #1e1e1e;
+      --panel: #1e1e1e;
+      --text: #ffffff;
+      --muted: #bbbbbb;
+      --border: #000;
+      --inactive: #ffffff;
+    }
 
-        .btn {
-            background-color: #222;
-            color: #eee;
-            border: 1px solid #777;
-            border-radius: 6px;
-            font-size: 0.8em;
-            padding: 8px;
-            cursor: pointer;
-            width: 100%;
-        }
-        #canvas {
-            position: relative;
-            width: 800px;
-            height: 800px;
-            background-color: #111111;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .dot {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border-radius: 0;
-            background-color: #444;
-            transition: background-color 0.3s, box-shadow 0.3s;
-            margin: 0;
-            z-index: 1;
-        }
-        .dot.pulse {
-            animation: pulse 0.6s ease-out;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0px 4px #fff0; }
-            50% { box-shadow: 0 0 16px 8px #fff8; }
-            100% { box-shadow: 0 0 0px 4px #fff0; }
-        }
-    </style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 24px;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    #sidebar {
+      width: 220px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 16px;
+      border-right: 1px solid #000;
+      max-height: calc(100vh - 48px);
+    }
+
+
+
+    #list {
+      width: 100%;
+      padding: 8px;
+      font-size: 0.9em;
+      border-radius: 6px;
+      border: 1px solid #000;
+      background-color: #3A3A3C;
+      color: #ffffff;
+    }
+
+    #list:hover {
+      background-color: #48484a;
+    }
+
+
+#level-select {
+  width: 100%;
+  padding: 8px;
+  font-size: 0.9em;
+  border-radius: 6px;
+  border: 1px solid #000;
+  background-color: #3A3A3C;
+  color: #ffffff;
+  margin-top: 10px;
+}
+
+#level-select:hover {
+  background-color: #48484a;
+}
+
+    .btn {
+      background-color: var(--panel);
+      color: var(--text);
+      border: 1px solid #666;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      padding: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .btn:hover {
+      border-color: #aaa;
+    }
+
+    #canvas {
+      position: relative;
+      width: 800px;
+      height: 800px;
+      background: #ffffff;
+      border: 1px solid #000;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    #sanctuary-svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .decor {
+      opacity: 0.95;
+      pointer-events: none;
+    }
+
+    .dot {
+      stroke: #000;
+      stroke-width: 0.5;
+      fill: #ffffff;
+      cursor: pointer;
+      transition: fill 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .dot:hover {
+      filter: brightness(1.15);
+    }
+
+    .dot.pulse {
+      animation: pulse 0.55s ease-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.35); }
+      100% { transform: scale(1); }
+    }
+  </style>
 </head>
 <body>
-    <div id="sidebar">
-        <div id="progress">Progression : 0 / 367</div>
-        <button id="reset-button" onclick="resetAll()">Réinitialiser</button>
-        <div id="list"></div>
-    </div>
-    <div id="canvas"></div>
-    <script>
-        // === PARAMÈTRES ===
-        const N = 367;
-        // Ordre : gris > rouge > bleu > vert
-        const levels = ["#444", "#e74c3c", "#3498db", "#27ae60"];
-        const state = JSON.parse(localStorage.getItem("asclepiosState") || "{}");
+  <div id="sidebar">
+    <select id="list"></select>
+    <select id="level-select">
+      <option value="0">0</option>
+      <option value="1">x1</option>
+      <option value="2">x2</option>
+      <option value="3">x3</option>
+      <option value="4">x4</option>
+      <option value="5">x5</option>
+      <option value="6">x6</option>
+      <option value="7">x7</option>
+    </select>
+  </div>
 
-        // Grille compacte (carré le plus proche de racine(N))
-        const gridSize = Math.ceil(Math.sqrt(N)); // 20x20 max pour 367
-        const cellSize = 20;  // px
-        const offsetX = (800 - gridSize * cellSize) / 2;
-        const offsetY = (800 - gridSize * cellSize) / 2;
+  <div id="canvas">
+    <svg id="sanctuary-svg" viewBox="0 0 350 350" aria-label="Sanctuaire d'Asclépios"></svg>
+  </div>
 
-        const canvas = document.getElementById("canvas");
-        const list = document.getElementById("list");
-        const progress = document.getElementById("progress");
+  <script>
+    const positions = [{"x": 165, "y": 65}, {"x": 165, "y": 70}, {"x": 170, "y": 60}, {"x": 170, "y": 65}, {"x": 170, "y": 70}, {"x": 170, "y": 75}, {"x": 175, "y": 60}, {"x": 175, "y": 65}, {"x": 175, "y": 70}, {"x": 175, "y": 75}, {"x": 180, "y": 65}, {"x": 180, "y": 70}, {"x": 145, "y": 85}, {"x": 145, "y": 90}, {"x": 150, "y": 85}, {"x": 150, "y": 90}, {"x": 155, "y": 85}, {"x": 155, "y": 90}, {"x": 160, "y": 85}, {"x": 160, "y": 90}, {"x": 165, "y": 85}, {"x": 165, "y": 90}, {"x": 170, "y": 85}, {"x": 170, "y": 90}, {"x": 175, "y": 85}, {"x": 175, "y": 90}, {"x": 180, "y": 85}, {"x": 180, "y": 90}, {"x": 185, "y": 85}, {"x": 185, "y": 90}, {"x": 190, "y": 85}, {"x": 190, "y": 90}, {"x": 195, "y": 85}, {"x": 195, "y": 90}, {"x": 200, "y": 85}, {"x": 200, "y": 90}, {"x": 105, "y": 100}, {"x": 105, "y": 105}, {"x": 105, "y": 110}, {"x": 105, "y": 115}, {"x": 105, "y": 120}, {"x": 105, "y": 125}, {"x": 105, "y": 130}, {"x": 105, "y": 135}, {"x": 105, "y": 140}, {"x": 105, "y": 145}, {"x": 110, "y": 100}, {"x": 110, "y": 105}, {"x": 110, "y": 110}, {"x": 110, "y": 115}, {"x": 110, "y": 120}, {"x": 110, "y": 125}, {"x": 110, "y": 130}, {"x": 110, "y": 135}, {"x": 110, "y": 140}, {"x": 110, "y": 145}, {"x": 115, "y": 100}, {"x": 115, "y": 105}, {"x": 115, "y": 140}, {"x": 115, "y": 145}, {"x": 120, "y": 100}, {"x": 120, "y": 105}, {"x": 120, "y": 140}, {"x": 120, "y": 145}, {"x": 125, "y": 105}, {"x": 125, "y": 120}, {"x": 125, "y": 125}, {"x": 125, "y": 140}, {"x": 125, "y": 145}, {"x": 130, "y": 120}, {"x": 130, "y": 125}, {"x": 130, "y": 140}, {"x": 130, "y": 145}, {"x": 135, "y": 120}, {"x": 135, "y": 125}, {"x": 135, "y": 130}, {"x": 135, "y": 135}, {"x": 135, "y": 140}, {"x": 135, "y": 145}, {"x": 140, "y": 120}, {"x": 140, "y": 125}, {"x": 140, "y": 130}, {"x": 140, "y": 135}, {"x": 140, "y": 140}, {"x": 140, "y": 145}, {"x": 145, "y": 100}, {"x": 150, "y": 100}, {"x": 150, "y": 105}, {"x": 155, "y": 100}, {"x": 155, "y": 105}, {"x": 160, "y": 100}, {"x": 160, "y": 105}, {"x": 165, "y": 100}, {"x": 165, "y": 105}, {"x": 170, "y": 100}, {"x": 170, "y": 105}, {"x": 175, "y": 100}, {"x": 175, "y": 105}, {"x": 180, "y": 100}, {"x": 180, "y": 105}, {"x": 185, "y": 100}, {"x": 185, "y": 105}, {"x": 190, "y": 100}, {"x": 190, "y": 105}, {"x": 195, "y": 100}, {"x": 195, "y": 105}, {"x": 200, "y": 100}, {"x": 200, "y": 105}, {"x": 205, "y": 100}, {"x": 205, "y": 105}, {"x": 205, "y": 120}, {"x": 205, "y": 125}, {"x": 205, "y": 130}, {"x": 205, "y": 135}, {"x": 205, "y": 140}, {"x": 205, "y": 145}, {"x": 210, "y": 100}, {"x": 210, "y": 105}, {"x": 210, "y": 120}, {"x": 210, "y": 125}, {"x": 210, "y": 130}, {"x": 210, "y": 135}, {"x": 210, "y": 140}, {"x": 210, "y": 145}, {"x": 215, "y": 100}, {"x": 215, "y": 105}, {"x": 215, "y": 120}, {"x": 215, "y": 125}, {"x": 215, "y": 140}, {"x": 215, "y": 145}, {"x": 220, "y": 100}, {"x": 220, "y": 105}, {"x": 220, "y": 120}, {"x": 220, "y": 125}, {"x": 220, "y": 140}, {"x": 220, "y": 145}, {"x": 225, "y": 100}, {"x": 225, "y": 105}, {"x": 225, "y": 140}, {"x": 225, "y": 145}, {"x": 230, "y": 100}, {"x": 230, "y": 105}, {"x": 230, "y": 140}, {"x": 230, "y": 145}, {"x": 235, "y": 100}, {"x": 235, "y": 105}, {"x": 235, "y": 110}, {"x": 235, "y": 115}, {"x": 235, "y": 120}, {"x": 235, "y": 125}, {"x": 235, "y": 130}, {"x": 235, "y": 135}, {"x": 235, "y": 140}, {"x": 235, "y": 145}, {"x": 240, "y": 100}, {"x": 240, "y": 105}, {"x": 240, "y": 110}, {"x": 240, "y": 115}, {"x": 240, "y": 120}, {"x": 240, "y": 125}, {"x": 240, "y": 130}, {"x": 240, "y": 135}, {"x": 240, "y": 140}, {"x": 240, "y": 145}, {"x": 155, "y": 115}, {"x": 155, "y": 120}, {"x": 155, "y": 125}, {"x": 155, "y": 130}, {"x": 155, "y": 135}, {"x": 155, "y": 140}, {"x": 155, "y": 145}, {"x": 155, "y": 150}, {"x": 155, "y": 155}, {"x": 155, "y": 160}, {"x": 155, "y": 165}, {"x": 155, "y": 170}, {"x": 160, "y": 115}, {"x": 160, "y": 120}, {"x": 160, "y": 125}, {"x": 160, "y": 130}, {"x": 160, "y": 135}, {"x": 160, "y": 140}, {"x": 160, "y": 145}, {"x": 160, "y": 150}, {"x": 160, "y": 155}, {"x": 160, "y": 160}, {"x": 160, "y": 165}, {"x": 160, "y": 170}, {"x": 170, "y": 115}, {"x": 170, "y": 120}, {"x": 170, "y": 125}, {"x": 170, "y": 130}, {"x": 170, "y": 135}, {"x": 170, "y": 140}, {"x": 170, "y": 145}, {"x": 170, "y": 150}, {"x": 170, "y": 155}, {"x": 170, "y": 160}, {"x": 170, "y": 165}, {"x": 175, "y": 115}, {"x": 175, "y": 120}, {"x": 175, "y": 125}, {"x": 175, "y": 130}, {"x": 175, "y": 135}, {"x": 175, "y": 140}, {"x": 175, "y": 145}, {"x": 175, "y": 150}, {"x": 175, "y": 155}, {"x": 175, "y": 160}, {"x": 175, "y": 165}, {"x": 185, "y": 115}, {"x": 185, "y": 120}, {"x": 185, "y": 125}, {"x": 185, "y": 130}, {"x": 185, "y": 135}, {"x": 185, "y": 140}, {"x": 185, "y": 145}, {"x": 185, "y": 150}, {"x": 185, "y": 155}, {"x": 185, "y": 160}, {"x": 190, "y": 115}, {"x": 190, "y": 120}, {"x": 190, "y": 125}, {"x": 190, "y": 130}, {"x": 190, "y": 135}, {"x": 190, "y": 140}, {"x": 190, "y": 145}, {"x": 190, "y": 150}, {"x": 190, "y": 155}, {"x": 190, "y": 160}, {"x": 155, "y": 195}, {"x": 155, "y": 200}, {"x": 155, "y": 205}, {"x": 155, "y": 210}, {"x": 155, "y": 215}, {"x": 155, "y": 220}, {"x": 155, "y": 225}, {"x": 155, "y": 230}, {"x": 155, "y": 235}, {"x": 155, "y": 240}, {"x": 155, "y": 245}, {"x": 155, "y": 250}, {"x": 155, "y": 255}, {"x": 155, "y": 260}, {"x": 155, "y": 265}, {"x": 155, "y": 270}, {"x": 155, "y": 275}, {"x": 155, "y": 280}, {"x": 155, "y": 285}, {"x": 160, "y": 190}, {"x": 160, "y": 195}, {"x": 160, "y": 200}, {"x": 160, "y": 205}, {"x": 160, "y": 210}, {"x": 160, "y": 215}, {"x": 160, "y": 220}, {"x": 160, "y": 225}, {"x": 160, "y": 230}, {"x": 160, "y": 235}, {"x": 160, "y": 240}, {"x": 160, "y": 245}, {"x": 160, "y": 250}, {"x": 160, "y": 255}, {"x": 160, "y": 260}, {"x": 160, "y": 265}, {"x": 160, "y": 270}, {"x": 160, "y": 275}, {"x": 160, "y": 280}, {"x": 160, "y": 285}, {"x": 170, "y": 190}, {"x": 170, "y": 195}, {"x": 170, "y": 200}, {"x": 170, "y": 205}, {"x": 170, "y": 210}, {"x": 170, "y": 215}, {"x": 170, "y": 220}, {"x": 170, "y": 225}, {"x": 170, "y": 230}, {"x": 170, "y": 235}, {"x": 170, "y": 240}, {"x": 170, "y": 245}, {"x": 170, "y": 250}, {"x": 170, "y": 255}, {"x": 170, "y": 260}, {"x": 170, "y": 265}, {"x": 170, "y": 270}, {"x": 170, "y": 275}, {"x": 170, "y": 280}, {"x": 170, "y": 285}, {"x": 170, "y": 290}, {"x": 170, "y": 295}, {"x": 170, "y": 300}, {"x": 170, "y": 305}, {"x": 170, "y": 310}, {"x": 170, "y": 315}, {"x": 170, "y": 320}, {"x": 175, "y": 185}, {"x": 175, "y": 190}, {"x": 175, "y": 195}, {"x": 175, "y": 200}, {"x": 175, "y": 205}, {"x": 175, "y": 210}, {"x": 175, "y": 215}, {"x": 175, "y": 220}, {"x": 175, "y": 225}, {"x": 175, "y": 230}, {"x": 175, "y": 235}, {"x": 175, "y": 240}, {"x": 175, "y": 245}, {"x": 175, "y": 250}, {"x": 175, "y": 255}, {"x": 175, "y": 260}, {"x": 175, "y": 265}, {"x": 175, "y": 270}, {"x": 175, "y": 275}, {"x": 175, "y": 280}, {"x": 175, "y": 285}, {"x": 175, "y": 290}, {"x": 175, "y": 295}, {"x": 175, "y": 300}, {"x": 175, "y": 305}, {"x": 175, "y": 310}, {"x": 175, "y": 315}, {"x": 175, "y": 320}, {"x": 185, "y": 185}, {"x": 185, "y": 190}, {"x": 185, "y": 195}, {"x": 185, "y": 200}, {"x": 185, "y": 205}, {"x": 185, "y": 210}, {"x": 185, "y": 215}, {"x": 185, "y": 220}, {"x": 185, "y": 225}, {"x": 185, "y": 230}, {"x": 185, "y": 235}, {"x": 185, "y": 240}, {"x": 185, "y": 245}, {"x": 185, "y": 250}, {"x": 185, "y": 255}, {"x": 185, "y": 260}, {"x": 185, "y": 265}, {"x": 185, "y": 270}, {"x": 185, "y": 275}, {"x": 185, "y": 280}, {"x": 185, "y": 285}, {"x": 190, "y": 180}, {"x": 190, "y": 185}, {"x": 190, "y": 190}, {"x": 190, "y": 195}, {"x": 190, "y": 200}, {"x": 190, "y": 205}, {"x": 190, "y": 210}, {"x": 190, "y": 215}, {"x": 190, "y": 220}, {"x": 190, "y": 225}, {"x": 190, "y": 230}, {"x": 190, "y": 235}, {"x": 190, "y": 240}, {"x": 190, "y": 245}, {"x": 190, "y": 250}, {"x": 190, "y": 255}, {"x": 190, "y": 260}, {"x": 190, "y": 265}, {"x": 190, "y": 270}, {"x": 190, "y": 275}, {"x": 190, "y": 280}, {"x": 190, "y": 285}];
+    const serpentMarkup = `<path class="st0" d="M187.86,217.44c-8.79-5.72-19.05-10.95-28.41-15.68-3.98-2.24-9.05-4.39-11.38-7.94-.95-3.08,4.63-5.55,7.22-6.57,9.88-3.64,20.65-4.98,30.87-7.91,5.5-1.61,11.39-3.44,16.11-7.29,6.4-5,7.24-13.45,2.54-19.9-4.76-6.66-10.93-10.72-17.27-15.2-11.83-8.01-24.05-15.23-35.08-24.08-10.57-8.48-21.34-18.8-22.57-33.93-1.4-17.26,10.85-32.7,22.09-38.49,3-1.54,7.56-3.89,12.25-2.45,3.43,1.05,6.35,3.98,12.25,9.8,3.08,3.03,4.78,4.94,7.35,4.9,2.12-.03,3.83-1.37,4.9-2.45-.58-1.01-1.51-2.7-2.45-4.9-2.79-6.55-2.3-9.75-4.9-12.25-1.13-1.09-3.23-2.4-7.35-2.45-1.53-.78-4.07-1.91-7.35-2.45-17.01-2.82-36.42,12.83-43.48,31.12-1.12,2.89-3.81,10.1-3.09,19.59,1.25,16.44,12.28,30.3,26.43,41.34,11.36,9.09,24.03,16.25,36.03,24.1,5.35,3.62,11.47,7.62,15.16,12.63,6.32,8.6-7.54,12.66-13.81,14.78-6.75,2.07-13.74,3.58-20.64,5.46-7.58,2.31-19.7,5.01-21.86,14.11-1.06,4.51,2.35,8.32,5.48,10.4,5.67,3.84,13.55,7.01,19.61,9.96,12.83,6.02,25.23,12.89,36.26,21.8,16.65,13.38,30.03,30.57,39.86,49.52-11.34-26.6-30.28-49.94-54.78-65.56ZM178.72,34.32c.4.34.9.83,1.36,1.51.59.87.89,1.69,1.05,2.27-1.09,0-2.06-.61-2.48-1.54-.48-1.08,0-2.09.07-2.24Z"/>`;
+    const N = positions.length;
+    const levels = [
+      "#ffffff",
+      "#54400c",
+      "#816212",
+      "#c4951c",
+      "#e1af33",
+      "#e8c15f",
+      "#f2dba2",
+      "#000000"
+    ];
+    const state = JSON.parse(localStorage.getItem("asclepiosState") || "{}");
 
-        let dots = {};
+    const svg = document.getElementById("sanctuary-svg");
+    const list = document.getElementById("list");
 
-        function updateProgress() {
-            let count = Object.values(state).filter(v => v > 0).length;
-            progress.textContent = `Progression : ${count} / ${N}`;
-        }
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const dots = {};
 
-        function resetAll() {
-            if (!confirm("Réinitialiser tous les progrès ?")) return;
-            for (let i = 1; i <= N; i++) {
-                state[i] = 0;
-                dots[i].style.backgroundColor = levels[0];
-            }
-            localStorage.setItem("asclepiosState", JSON.stringify(state));
-            updateProgress();
-        }
+    function updateProgress() {
+      // Progress display removed.
+    }
 
-        // Placer les carrés sur une grille compacte, sans espace
-        for (let i = 1; i <= N; i++) {
-            const row = Math.floor((i - 1) / gridSize);
-            const col = (i - 1) % gridSize;
-            const dot = document.createElement("div");
-            dot.className = "dot";
-            dot.style.left = `${offsetX + col * cellSize}px`;
-            dot.style.top = `${offsetY + row * cellSize}px`;
-            dot.dataset.index = i;
-            dot.title = `Item ${i}`;
-            canvas.appendChild(dot);
-            dots[i] = dot;
-        }
+    function applyColor(index) {
+      const level = state[index] || 0;
+      dots[index].style.fill = levels[level];
+    }
 
-        for (let i = 1; i <= N; i++) {
-            const btn = document.createElement("button");
-            btn.className = "btn";
-            btn.textContent = i;
-            btn.onclick = () => {
-                state[i] = (state[i] || 0) + 1;
-                if (state[i] >= levels.length) state[i] = 0;
-                dots[i].style.backgroundColor = levels[state[i]];
-                dots[i].classList.add('pulse');
-                setTimeout(() => dots[i].classList.remove('pulse'), 600);
-                localStorage.setItem("asclepiosState", JSON.stringify(state));
-                updateProgress();
-            };
-            list.appendChild(btn);
+    function pulse(index) {
+      dots[index].classList.remove("pulse");
+      void dots[index].getBoundingClientRect();
+      dots[index].classList.add("pulse");
+      setTimeout(() => dots[index].classList.remove("pulse"), 550);
+    }
 
-            // Appliquer l'état initial
-            if (typeof state[i] !== "undefined") {
-                dots[i].style.backgroundColor = levels[state[i]];
-            }
-        }
+    function cycleItem(index) {
+      state[index] = ((state[index] || 0) + 1) % levels.length;
+      applyColor(index);
+      pulse(index);
+      localStorage.setItem("asclepiosState", JSON.stringify(state));
+      updateProgress();
+    }
 
-        updateProgress();
-    </script>
+    function resetAll() {
+      if (!confirm("Réinitialiser tous les progrès ?")) return;
+      for (let i = 1; i <= N; i++) {
+        state[i] = 0;
+        applyColor(i);
+      }
+      localStorage.setItem("asclepiosState", JSON.stringify(state));
+      updateProgress();
+    }
+
+    const decorGroup = document.createElementNS(SVG_NS, "g");
+    decorGroup.classList.add("decor");
+    decorGroup.innerHTML = serpentMarkup;
+    svg.appendChild(decorGroup);
+
+    positions.forEach((pos, zeroBasedIndex) => {
+      const index = zeroBasedIndex + 1;
+      const rect = document.createElementNS(SVG_NS, "rect");
+      rect.setAttribute("x", pos.x);
+      rect.setAttribute("y", pos.y);
+      rect.setAttribute("width", 5);
+      rect.setAttribute("height", 5);
+      rect.setAttribute("rx", 0.4);
+      rect.setAttribute("class", "dot");
+      rect.dataset.index = index;
+      rect.addEventListener("click", () => cycleItem(index));
+      rect.appendChild(document.createElementNS(SVG_NS, "title")).textContent = `Item ${index}`;
+      svg.appendChild(rect);
+      dots[index] = rect;
+      applyColor(index);
+    });
+
+    for (let i = 1; i <= N; i++) {
+      const option = document.createElement("option");
+      option.value = i;
+      option.textContent = `Item ${i}`;
+      list.appendChild(option);
+    }
+
+    let selectedItem = null;
+
+    list.addEventListener("change", (e) => {
+      selectedItem = parseInt(e.target.value);
+    });
+
+    const levelSelect = document.getElementById("level-select");
+
+    levelSelect.addEventListener("change", (e) => {
+      if (!selectedItem) return;
+
+      const level = parseInt(e.target.value);
+      state[selectedItem] = level;
+
+      dots[selectedItem].style.fill = levels[level];
+      dots[selectedItem].classList.add('pulse');
+      setTimeout(() => dots[selectedItem].classList.remove('pulse'), 600);
+
+      localStorage.setItem("asclepiosState", JSON.stringify(state));
+      updateProgress();
+    });
+
+    updateProgress();
+  </script>
 </body>
 </html>
