@@ -24,23 +24,11 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      gap: 24px;
       padding: 24px;
       font-family: Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
     }
-
-    #sidebar {
-      width: 220px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding-right: 16px;
-      border-right: 1px solid #000;
-      max-height: calc(100vh - 48px);
-    }
-
 
 
     #list {
@@ -58,20 +46,53 @@
     }
 
 
-#level-select {
-  width: 100%;
-  padding: 8px;
-  font-size: 0.9em;
-  border-radius: 6px;
-  border: 1px solid #000;
-  background-color: #3A3A3C;
-  color: #ffffff;
-  margin-top: 10px;
-}
+    #app {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
 
-#level-select:hover {
-  background-color: #48484a;
-}
+    #controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 800px;
+      flex-wrap: wrap;
+      min-height: 42px;
+    }
+
+    #list {
+      width: 220px;
+      flex: 0 0 220px;
+      height: 42px;
+    }
+
+    #level-buttons {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    #level-buttons button {
+      width: 52px;
+      height: 42px;
+      padding: 0;
+      font-size: 0.9em;
+      border-radius: 6px;
+      border: 1px solid #000;
+      background-color: #2178FE;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #level-buttons button:hover {
+      background-color: #2178FE;
+    }
 
     .btn {
       background-color: var(--panel);
@@ -135,22 +156,24 @@
   </style>
 </head>
 <body>
-  <div id="sidebar">
-    <select id="list"></select>
-    <select id="level-select">
-      <option value="0">0</option>
-      <option value="1">x1</option>
-      <option value="2">x2</option>
-      <option value="3">x3</option>
-      <option value="4">x4</option>
-      <option value="5">x5</option>
-      <option value="6">x6</option>
-      <option value="7">x7</option>
-    </select>
-  </div>
+  <div id="app">
+    <div id="canvas">
+      <svg id="sanctuary-svg" viewBox="0 0 350 350" aria-label="Sanctuaire d'Asclépios"></svg>
+    </div>
 
-  <div id="canvas">
-    <svg id="sanctuary-svg" viewBox="0 0 350 350" aria-label="Sanctuaire d'Asclépios"></svg>
+    <div id="controls">
+      <select id="list"></select>
+      <div id="level-buttons">
+        <button type="button" data-level="0">0</button>
+        <button type="button" data-level="1">X1</button>
+        <button type="button" data-level="2">X2</button>
+        <button type="button" data-level="3">X3</button>
+        <button type="button" data-level="4">X4</button>
+        <button type="button" data-level="5">X5</button>
+        <button type="button" data-level="6">X6</button>
+        <button type="button" data-level="7">X7</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -244,20 +267,21 @@
       selectedItem = parseInt(e.target.value);
     });
 
-    const levelSelect = document.getElementById("level-select");
 
-    levelSelect.addEventListener("change", (e) => {
-      if (!selectedItem) return;
+    document.querySelectorAll("#level-buttons button").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (!selectedItem) return;
 
-      const level = parseInt(e.target.value);
-      state[selectedItem] = level;
+        const level = parseInt(button.dataset.level);
+        state[selectedItem] = level;
 
-      dots[selectedItem].style.fill = levels[level];
-      dots[selectedItem].classList.add('pulse');
-      setTimeout(() => dots[selectedItem].classList.remove('pulse'), 600);
+        dots[selectedItem].style.fill = levels[level];
+        dots[selectedItem].classList.add("pulse");
+        setTimeout(() => dots[selectedItem].classList.remove("pulse"), 600);
 
-      localStorage.setItem("asclepiosState", JSON.stringify(state));
-      updateProgress();
+        localStorage.setItem("asclepiosState", JSON.stringify(state));
+        updateProgress();
+      });
     });
 
     updateProgress();
